@@ -1,9 +1,13 @@
-import { useRef, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import {useGLTF, Environment} from '@react-three/drei'
+import { EffectComposer, DepthOfField } from '@react-three/postprocessing'
 
-function Box({z}) {
+
+function Banana({z}) {
 const ref = useRef()
+const { nodes, materials } = useGLTF('/banana-v1-v1-transformed.glb')
 const { viewport, camera} = useThree()
 const {width, height} = viewport.getCurrentViewport(camera, [0,0,-10])
 
@@ -11,30 +15,50 @@ const {width, height} = viewport.getCurrentViewport(camera, [0,0,-10])
 const [data] = useState({
   x: THREE.MathUtils.randFloatSpread(2),
   y:THREE.MathUtils.randFloatSpread(height),
+  rX: Math.random() * Math.PI,
+  rY: Math.random() * Math.PI,
+  rZ: Math.random() * Math.PI,
 })
 
   useFrame((state) => {
-    ref.current.position.set(data.x * width,(data.y += 0.5), z)
-    if (data.y > height / 1.5) {
-      data.y = -height / 1.5
-    }
+    ref.current.rotation.set((data.rX += 0.001), (data.rY += 0.001), data.rZ += 0.0005)
+    ref.current.position.set(data.x * width,(data.y += 0.025), z)
+    if (data.y > height) data.y = -height
+    
 
   })
 
   return (
-    <mesh ref={ref} >
-
-      <boxGeometry />
-      <meshBasicMaterial color="orange" />
-
-    </mesh>
+    
+    <mesh geometry={nodes.Banana.geometry} 
+    ref={ref}
+    material={materials.skin} 
+   />
   )
 }
 
-export default function App({count = 100}) {
+useGLTF.preload('/banana-v1-v1-transformed.glb')
+
+ function Hero() {
+ return  <h1> hi</h1>
+}
+export default function App({count = 200, depth=90}) {
   return ( 
-  <Canvas>
-    {Array.from({length: count}, (_, i) => (<Box key={ i } z={-i}/>))}
+  <Canvas gl={{alpha: false}} camera={{near: 0.01, far: 110, fov: 50 }}>
+    <color attach="background" args={["#ffde59"]} />
+    
+    <spotLight position={[10,10,10]} intensity={1} />
+    <Suspense fallback={null}>
+
+    {Array.from({length: count}, (_, i) => (<Banana key={ i } z={-(i / count) * depth - 50}/>))}
+    <Environment preset='sunset'/>
+    <EffectComposer>
+      <DepthOfField target={[0,0,depth / 2]} focalLength={0.1} bokehScale={3} height={700}/>
+    </EffectComposer>
+    </Suspense>
+  
+   
   </Canvas>
+
 )
 }  
