@@ -42,9 +42,9 @@ useGLTF.preload('/banana-v1-v1-transformed.glb')
  function Hero() {
  return  <h1> hi</h1>
 }
-export default function App({count = 200, depth=90}) {
+export default function App({count = 350, depth=70}) {
   return ( 
-  <Canvas gl={{alpha: false}} camera={{near: 0.01, far: 110, fov: 50 }}>
+  <Canvas gl={{alpha: false}} camera={{near: 0.01, far: 110, fov: 40 }}>
     <color attach="background" args={["#ffde59"]} />
     
     <spotLight position={[10,10,10]} intensity={1} />
